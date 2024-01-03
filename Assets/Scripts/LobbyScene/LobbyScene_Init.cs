@@ -5,9 +5,12 @@ using UnityEngine.SceneManagement;
 
 public class LobbyScene_Init : MonoBehaviour
 {
-    private IEnumerator Start()
+    private void Awake()
     {
-        yield return new WaitForSeconds(1f);
-        SceneManager.LoadScene(SCENE_TYPE.Init.ToString());
+        if (!SystemManager.Instance.IsInit)
+            SceneLoadManager.Instance.GoInitAndReturnScene(SCENE_TYPE.Lobby);
+
+        //yield return new WaitForSeconds(1f);
+        //SceneManager.LoadScene(SCENE_TYPE.Init.ToString());
     }
 }

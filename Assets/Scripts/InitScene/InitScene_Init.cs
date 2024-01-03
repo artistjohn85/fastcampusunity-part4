@@ -12,13 +12,11 @@ public class InitScene_Init : MonoBehaviour
     private const int PROGRESS_VALUE = 5;
     private int progressAddValue = 0;
 
-    private SystemManager systemManager; // cache
     private InitScene_UI InitScene_UI; // cache
     private ObjectPoolManager objectPoolManager; // cache
     private EffectManager effectManager; // cache
     private SoundManager soundManager; // cache
     private WindowManager windowManager; // cahe
-    private SceneLoadManager sceneLoadManager; // cache
 
     private void Awake()
     {
@@ -27,23 +25,17 @@ public class InitScene_Init : MonoBehaviour
         if (!isInit)
         {
             isInit = true;
-            systemManager = new GameObject("SystemManager").AddComponent<SystemManager>();
-            Debug.Log("InitScene_Init IsInit: " + systemManager.IsInit);
             objectPoolManager = new GameObject("ObjectPoolManager").AddComponent<ObjectPoolManager>();
             effectManager = new GameObject("EffectManager").AddComponent<EffectManager>();
             soundManager = new GameObject("SoundManager").AddComponent<SoundManager>();
             windowManager = new GameObject("WindowManager").AddComponent<WindowManager>();
-            sceneLoadManager = new GameObject("sceneLoadManager").AddComponent<SceneLoadManager>();
         }
         else
         {
-            systemManager = FindAnyObjectByType<SystemManager>();
-            Debug.Log("InitScene_Init IsInit: " + systemManager.IsInit);
             objectPoolManager = FindAnyObjectByType<ObjectPoolManager>();
             effectManager = FindAnyObjectByType<EffectManager>();
             soundManager = FindAnyObjectByType<SoundManager>();
             windowManager = FindAnyObjectByType<WindowManager>();
-            sceneLoadManager = FindAnyObjectByType<SceneLoadManager>();
         }
     }
 
@@ -83,8 +75,7 @@ public class InitScene_Init : MonoBehaviour
 
     private void SystemManagerInit()
     {
-        systemManager.SetInit();
-        //SystemManager.Instance.SetInit();
+        SystemManager.Instance.SetInit();
     }
 
     private void ObjectPoolManagerInit()
@@ -109,11 +100,11 @@ public class InitScene_Init : MonoBehaviour
 
     private void SceneLoadManagerInit()
     {
-        sceneLoadManager.SetInit();
+        SceneLoadManager.Instance.SetInit();
     }
 
     private void LoadScene()
     {
-        sceneLoadManager.SceneLoad(SCENE_TYPE.Lobby);
+        SceneLoadManager.Instance.SceneLoad(SceneLoadManager.Instance.InitSceneType);
     }
 }
