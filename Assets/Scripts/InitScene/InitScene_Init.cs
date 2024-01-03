@@ -7,6 +7,8 @@ using UnityEngine.SceneManagement;
 
 public class InitScene_Init : MonoBehaviour
 {
+    private static bool isInit = false;
+    
     private const int PROGRESS_VALUE = 5;
     private int progressAddValue = 0;
 
@@ -19,20 +21,33 @@ public class InitScene_Init : MonoBehaviour
 
     private void Awake()
     {
-        //SystemManager[] effectManagers = FindObjectsByType<SystemManager>(FindObjectsSortMode.None);
-        //Debug.Log("InitScene_Init Length:" + effectManagers.Length);
+        InitScene_UI = FindAnyObjectByType<InitScene_UI>();
+
+        if (!isInit)
+        {
+            isInit = true;
+            systemManager = new GameObject("SystemManager").AddComponent<SystemManager>();
+            Debug.Log("InitScene_Init IsInit: " + systemManager.IsInit);
+            objectPoolManager = new GameObject("ObjectPoolManager").AddComponent<ObjectPoolManager>();
+            effectManager = new GameObject("EffectManager").AddComponent<EffectManager>();
+            soundManager = new GameObject("SoundManager").AddComponent<SoundManager>();
+            windowManager = new GameObject("WindowManager").AddComponent<WindowManager>();
+        }
+        else
+        {
+            systemManager = FindAnyObjectByType<SystemManager>();
+            Debug.Log("InitScene_Init IsInit: " + systemManager.IsInit);
+            objectPoolManager = FindAnyObjectByType<ObjectPoolManager>();
+            effectManager = FindAnyObjectByType<EffectManager>();
+            soundManager = FindAnyObjectByType<SoundManager>();
+            windowManager = FindAnyObjectByType<WindowManager>();
+        }
     }
 
     private IEnumerator Start()
     {
         yield return null;
-        systemManager = FindAnyObjectByType<SystemManager>();
-        Debug.Log("InitScene_Init IsInit: " + systemManager.IsInit);
-        InitScene_UI = FindAnyObjectByType<InitScene_UI>();
-        objectPoolManager = FindAnyObjectByType<ObjectPoolManager>();
-        effectManager = FindAnyObjectByType<EffectManager>();
-        soundManager = FindAnyObjectByType<SoundManager>();
-        windowManager = FindAnyObjectByType<WindowManager>();
+        
 
         StartCoroutine(C_Manager());
     }
@@ -65,6 +80,7 @@ public class InitScene_Init : MonoBehaviour
     private void SystemManagerInit()
     {
         systemManager.SetInit();
+        //SystemManager.Instance.SetInit();
     }
 
     private void ObjectPoolManagerInit()

@@ -20,11 +20,11 @@ public class SoundManager : ManagerBase
     // Start is called before the first frame update
     void Start()
     {
-        audioSources = new AudioSource[audioClips.Length];
-        for (int i = 0; i < audioSources.Length; i++)
-        {
-            audioSources[i] = gameObject.AddComponent<AudioSource>();
-        }
+        //audioSources = new AudioSource[audioClips.Length];
+        //for (int i = 0; i < audioSources.Length; i++)
+        //{
+        //    audioSources[i] = gameObject.AddComponent<AudioSource>();
+        //}
     }
 
     // Update is called once per frame
