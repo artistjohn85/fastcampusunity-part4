@@ -18,6 +18,7 @@ public class InitScene_Init : MonoBehaviour
     private EffectManager effectManager; // cache
     private SoundManager soundManager; // cache
     private WindowManager windowManager; // cahe
+    private SceneLoadManager sceneLoadManager; // cache
 
     private void Awake()
     {
@@ -32,6 +33,7 @@ public class InitScene_Init : MonoBehaviour
             effectManager = new GameObject("EffectManager").AddComponent<EffectManager>();
             soundManager = new GameObject("SoundManager").AddComponent<SoundManager>();
             windowManager = new GameObject("WindowManager").AddComponent<WindowManager>();
+            sceneLoadManager = new GameObject("sceneLoadManager").AddComponent<SceneLoadManager>();
         }
         else
         {
@@ -41,6 +43,7 @@ public class InitScene_Init : MonoBehaviour
             effectManager = FindAnyObjectByType<EffectManager>();
             soundManager = FindAnyObjectByType<SoundManager>();
             windowManager = FindAnyObjectByType<WindowManager>();
+            sceneLoadManager = FindAnyObjectByType<SceneLoadManager>();
         }
     }
 
@@ -61,6 +64,7 @@ public class InitScene_Init : MonoBehaviour
             EffectManagerInit,
             SoundManager,
             WindowManagerInit,
+            SceneLoadManagerInit,
             LoadScene,
         };
 
@@ -103,8 +107,13 @@ public class InitScene_Init : MonoBehaviour
         windowManager.SetInit();
     }
 
+    private void SceneLoadManagerInit()
+    {
+        sceneLoadManager.SetInit();
+    }
+
     private void LoadScene()
     {
-        SceneManager.LoadScene(SCENE_TYPE.Lobby.ToString());
+        sceneLoadManager.SceneLoad(SCENE_TYPE.Lobby);
     }
 }
