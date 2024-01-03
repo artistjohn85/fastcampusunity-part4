@@ -3,10 +3,15 @@ using System.Collections.Generic;
 using System.Net.NetworkInformation;
 using UnityEngine;
 
-public class SoundManager : MonoBehaviour
+public class SoundManager : ManagerBase
 {
     [SerializeField] private AudioClip[] audioClips;
     private AudioSource[] audioSources; // cache
+
+    private void Awake()
+    {
+        Dontdestory<SoundManager>();
+    }
 
     public void SetInit()
     {

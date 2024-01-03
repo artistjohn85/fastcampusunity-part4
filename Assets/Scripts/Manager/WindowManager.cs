@@ -14,10 +14,15 @@ public class WindowInfo
     }
 }
 
-public class WindowManager : MonoBehaviour
+public class WindowManager : ManagerBase
 {
     // Start is called before the first frame update
     private List<WindowInfo> lists = new List<WindowInfo>();
+
+    private void Awake()
+    {
+        Dontdestory<WindowManager>();
+    }
 
     public void SetInit()
     {

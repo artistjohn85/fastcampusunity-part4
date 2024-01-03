@@ -4,9 +4,14 @@ using Unity.VisualScripting;
 using UnityEngine;
 using static UnityEditor.Progress;
 
-public class ObjectPoolManager : MonoBehaviour
+public class ObjectPoolManager : ManagerBase
 {
     private Dictionary<int, List<GameObject>> dics = new Dictionary<int, List<GameObject>>();
+
+    private void Awake()
+    {
+        Dontdestory<ObjectPoolManager>();
+    }
 
     public void SetInit()
     {

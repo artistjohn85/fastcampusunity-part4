@@ -2,24 +2,18 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class EffectManager : MonoBehaviour
+public class EffectManager : ManagerBase
 {
     [SerializeField] private GameObject[] effectPrefabs;
     [SerializeField] private float[] destoryTime;
 
+    private void Awake()
+    {
+        Dontdestory<EffectManager>();
+    }
+
     public void SetInit()
     {
-    }
-
-    void Start()
-    {
-
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-
     }
 
     public void PlayEffect(int index, Transform parent)

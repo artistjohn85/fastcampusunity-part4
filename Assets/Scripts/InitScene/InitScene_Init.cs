@@ -19,17 +19,21 @@ public class InitScene_Init : MonoBehaviour
 
     private void Awake()
     {
-        systemManager = FindAnyObjectByType<SystemManager>();
-        InitScene_UI = FindAnyObjectByType<InitScene_UI>();
+        //SystemManager[] effectManagers = FindObjectsByType<SystemManager>(FindObjectsSortMode.None);
+        //Debug.Log("InitScene_Init Length:" + effectManagers.Length);
+    }
 
+    private IEnumerator Start()
+    {
+        yield return null;
+        systemManager = FindAnyObjectByType<SystemManager>();
+        Debug.Log("InitScene_Init IsInit: " + systemManager.IsInit);
+        InitScene_UI = FindAnyObjectByType<InitScene_UI>();
         objectPoolManager = FindAnyObjectByType<ObjectPoolManager>();
         effectManager = FindAnyObjectByType<EffectManager>();
         soundManager = FindAnyObjectByType<SoundManager>();
         windowManager = FindAnyObjectByType<WindowManager>();
-    }
 
-    private void Start()
-    {
         StartCoroutine(C_Manager());
     }
 
