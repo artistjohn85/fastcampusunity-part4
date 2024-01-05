@@ -16,13 +16,13 @@ public class Config
 #endif
 
 #if DEV
-    public const string SERVER_API_URL = "https://localhost:7212/";
+    public const string SERVER_APP_CONFIG_URL = "https://localhost:7212/";
 #elif STAGE
-    public const string SERVER_API_URL = "https://localhost:7212/";
+    public const string SERVER_APP_CONFIG_URL = "https://localhost:7212/";
 #elif LIVE
-    public const string SERVER_API_URL = "https://localhost:7212/";
+    public const string SERVER_APP_CONFIG_URL = "https://localhost:7212/";
 #else
-    public const string SERVER_API_URL = "https://localhost:7212/";
+    public const string SERVER_APP_CONFIG_URL = "https://localhost:7212/";
 #endif
 
 #if UNITY_ANDROID

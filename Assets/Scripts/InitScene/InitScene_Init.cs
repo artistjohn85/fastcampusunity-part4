@@ -52,6 +52,19 @@ public class InitScene_Init : MonoBehaviour
 
     private IEnumerator C_Manager()
     {
+        IEnumerator enumerator = NetworkManagerInit();
+        yield return StartCoroutine(enumerator);
+        bool isNetworkManagerSuccess = (bool)enumerator.Current;
+        if (isNetworkManagerSuccess)
+        {
+            Debug.Log("성공");
+        }
+        else
+        {
+            Debug.Log("서버오류, 안내창 띄어주기");
+            yield break;
+        }
+
         List<Action> actions = new List<Action>
         {
             SystemManagerInit,
@@ -60,7 +73,6 @@ public class InitScene_Init : MonoBehaviour
             SoundManager,
             WindowManagerInit,
             SceneLoadManagerInit,
-            NetworkManagerInit,
             LoadScene,
         };
 
@@ -107,17 +119,30 @@ public class InitScene_Init : MonoBehaviour
         SceneLoadManager.Instance.SetInit();
     }
 
-    private void NetworkManagerInit()
+    private IEnumerator NetworkManagerInit()
     {
-        networkManager.SetInit(apiUrl: Config.SERVER_API_URL);
+        networkManager.SetInit();
 
         ApplicationConfigSendPacket applicationConfigSendPacket
-            = new ApplicationConfigSendPacket(PACKET_NAME_TYPE.ApplicationConfig,
-            Config.E_ENVIRONMENT_TYPE,
-            Config.E_OS_TYPE,
-            Config.APP_VERSION);
+            = new ApplicationConfigSendPacket(
+                Config.SERVER_APP_CONFIG_URL,
+                PACKET_NAME_TYPE.ApplicationConfig,
+                Config.E_ENVIRONMENT_TYPE,
+                Config.E_OS_TYPE,
+                Config.APP_VERSION);
 
-        networkManager.SendPacket(applicationConfigSendPacket);
+        IEnumerator enumerator = networkManager.C_SendPacket<ApplicationConfigReceivePacket>(applicationConfigSendPacket);
+        yield return StartCoroutine(enumerator);
+        ApplicationConfigReceivePacket receivePacket = enumerator.Current as ApplicationConfigReceivePacket;
+        if (receivePacket != null && receivePacket.ReturnCode == (int)RETURN_CODE.Success)
+        {
+            SystemManager.Instance.ApiUrl = receivePacket.ApiUrl;
+            yield return true;
+        }
+        else
+        {
+            yield return false;
+        }
     }
 
     private void LoadScene()
