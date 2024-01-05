@@ -1,3 +1,4 @@
+using JetBrains.Annotations;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -7,8 +8,8 @@ public class CertHandler : CertificateHandler
 {
     protected override bool ValidateCertificate(byte[] certificateData)
     {
-        // ¿©±â¿¡¼­ ¼­¹öÀÇ ÀÎÁõ¼­¸¦ °ËÁõÇÏ´Â ·ÎÁ÷À» ÀÛ¼ºÇÒ ¼ö ÀÖ½À´Ï´Ù.
-        // ±âº»ÀûÀ¸·Î´Â true¸¦ ¹İÈ¯ÇÏ¿© ¸ğµç ÀÎÁõ¼­¸¦ Çã¿ëÇÕ´Ï´Ù.
+        // ì—¬ê¸°ì—ì„œ ì„œë²„ì˜ ì¸ì¦ì„œë¥¼ ê²€ì¦í•˜ëŠ” ë¡œì§ì„ ì‘ì„±í•  ìˆ˜ ìˆìŠµë‹ˆë‹¤.
+        // ê¸°ë³¸ì ìœ¼ë¡œëŠ” trueë¥¼ ë°˜í™˜í•˜ì—¬ ëª¨ë“  ì¸ì¦ì„œë¥¼ í—ˆìš©í•©ë‹ˆë‹¤.
         return true;
     }
 }
@@ -27,33 +28,47 @@ public class NetworkManager : ManagerBase
         this.apiUrl = apiUrl;
     }
 
-    public void SendPacket()
+    public void SendPacket(SendPacketBase sendPacketBase)
     {
-        StartCoroutine(C_SendPacket());
+        StartCoroutine(C_SendPacket(sendPacketBase));
     }
 
-    IEnumerator C_SendPacket()
+    IEnumerator C_SendPacket(SendPacketBase sendPacketBase)
     {
-        UnityWebRequest request = UnityWebRequest.Get(this.apiUrl);
+        string packet = JsonUtility.ToJson(sendPacketBase);
+        Debug.Log("[NetworkManager Send Packet] " + packet);
 
-        // HTTPS Åë½ÅÀ» À§ÇÑ º¸¾È ¼³Á¤
-        request.certificateHandler = new CertHandler();
-
-        yield return request.SendWebRequest();
-
-        if (request.result == UnityWebRequest.Result.ConnectionError || request.result == UnityWebRequest.Result.ProtocolError)
+        using (UnityWebRequest request = UnityWebRequest.PostWwwForm(this.apiUrl, packet))
         {
-            Debug.LogError("Error: " + request.error);
-        }
-        else
-        {
-            // ¼º°øÀûÀ¸·Î µ¥ÀÌÅÍ¸¦ °¡Á®¿ÔÀ» ¶§ Ã³¸®
-            string jsonData = request.downloadHandler.text;
-            Debug.Log("Received Data: " + jsonData);
+            byte[] bytes = new System.Text.UTF8Encoding().GetBytes(packet);
+            request.uploadHandler = new UploadHandlerRaw(bytes);
+            request.downloadHandler = new DownloadHandlerBuffer();
+            request.SetRequestHeader("Content-Type", "application/json");
 
-            // ¿©±â¼­ºÎÅÍ´Â JSON µ¥ÀÌÅÍ¸¦ ¿øÇÏ´Â ¹æ½ÄÀ¸·Î Ã³¸®ÇÏ¸é µË´Ï´Ù.
-            // ¿¹¸¦ µé¾î, JSON µ¥ÀÌÅÍ¸¦ C# °´Ã¼·Î º¯È¯ÇÏ·Á¸é JsonUtility.FromJson<T>() ÇÔ¼ö¸¦ »ç¿ëÇÕ´Ï´Ù.
-            // ¿¹: YourDataObject data = JsonUtility.FromJson<YourDataObject>(jsonData);
+            // HTTPS í†µì‹ ì„ ìœ„í•œ ë³´ì•ˆ ì„¤ì •
+            request.certificateHandler = new CertHandler();
+
+            yield return request.SendWebRequest();
+
+            if (request.result == UnityWebRequest.Result.ConnectionError || request.result == UnityWebRequest.Result.ProtocolError)
+            {
+                Debug.LogError("Error: " + request.error);
+            }
+            else
+            {
+                // ì„±ê³µì ìœ¼ë¡œ ë°ì´í„°ë¥¼ ê°€ì ¸ì™”ì„ ë•Œ ì²˜ë¦¬
+                string jsonData = request.downloadHandler.text;
+                Debug.Log("Received Data: " + jsonData);
+
+                ApplicationConfigReceivePacket applicationConfigReceivePacket 
+                    = JsonUtility.FromJson<ApplicationConfigReceivePacket>(jsonData);
+
+                Debug.Log("Received");
+
+                // ì—¬ê¸°ì„œë¶€í„°ëŠ” JSON ë°ì´í„°ë¥¼ ì›í•˜ëŠ” ë°©ì‹ìœ¼ë¡œ ì²˜ë¦¬í•˜ë©´ ë©ë‹ˆë‹¤.
+                // ì˜ˆë¥¼ ë“¤ì–´, JSON ë°ì´í„°ë¥¼ C# ê°ì²´ë¡œ ë³€í™˜í•˜ë ¤ë©´ JsonUtility.FromJson<T>() í•¨ìˆ˜ë¥¼ ì‚¬ìš©í•©ë‹ˆë‹¤.
+                // ì˜ˆ: YourDataObject data = JsonUtility.FromJson<YourDataObject>(jsonData);
+            }
         }
     }
 }
