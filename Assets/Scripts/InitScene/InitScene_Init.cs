@@ -7,6 +7,9 @@ using UnityEngine.SceneManagement;
 
 public class InitScene_Init : MonoBehaviour
 {
+    [SerializeField] private GameObject prefabPopupMessage;
+    [SerializeField] private Transform parentPopupMessage;
+
     private static bool isInit = false;
     
     private const int PROGRESS_VALUE = 5;
@@ -55,15 +58,30 @@ public class InitScene_Init : MonoBehaviour
         IEnumerator enumerator = NetworkManagerInit();
         yield return StartCoroutine(enumerator);
         bool isNetworkManagerSuccess = (bool)enumerator.Current;
-        if (isNetworkManagerSuccess)
-        {
-            Debug.Log("성공");
-        }
-        else
+        if (!isNetworkManagerSuccess)
         {
             Debug.Log("서버오류, 안내창 띄어주기");
+            GameObject objPopupMessage = Instantiate(prefabPopupMessage, parentPopupMessage);
+
+            PopupMessageInfo popupMessageInfo = new PopupMessageInfo(POPUP_MESSAGE_TYPE.ONE_BUTTON, "서버오류", "서버오류가 발생하였습니다. 다시 접속하여주세요.");
+            PopupMessage popupMessage = objPopupMessage.GetComponent<PopupMessage>();
+            popupMessage.OpenMessage(popupMessageInfo, null, () =>
+            {
+                // 앱 종료
+                Application.Quit();
+            });
             yield break;
         }
+
+        yield return new WaitForSeconds(0.1f);
+        SetProgress();
+
+        yield return StartCoroutine(EtcManager());
+
+    }
+
+    private IEnumerator EtcManager()
+    {
 
         List<Action> actions = new List<Action>
         {
@@ -131,6 +149,9 @@ public class InitScene_Init : MonoBehaviour
                 Config.E_OS_TYPE,
                 Config.APP_VERSION);
 
+        // Github에 업로드, 콜백 방식 사용
+        //networkManager.C_SendPacket<ApplicationConfigReceivePacket>(applicationConfigSendPacket, AppConfig);
+
         IEnumerator enumerator = networkManager.C_SendPacket<ApplicationConfigReceivePacket>(applicationConfigSendPacket);
         yield return StartCoroutine(enumerator);
         ApplicationConfigReceivePacket receivePacket = enumerator.Current as ApplicationConfigReceivePacket;
@@ -144,6 +165,22 @@ public class InitScene_Init : MonoBehaviour
             yield return false;
         }
     }
+
+    // Github에 업로드, 콜백 방식 사용
+    //private void AppConfig(ReceivePacketBase receivePacketBase)
+    //{
+    //    ApplicationConfigReceivePacket receivePacket = receivePacketBase as ApplicationConfigReceivePacket;
+    //    if (receivePacket != null && receivePacket.ReturnCode == (int)RETURN_CODE.Success)
+    //    {
+    //        SystemManager.Instance.ApiUrl = receivePacket.ApiUrl;
+    //        Debug.Log("성공"); // 그다음 순서를 여기서 실행
+    //        StartCoroutine(EtcManager());
+    //    }
+    //    else
+    //    {
+    //        Debug.Log("에러 발생"); // 에러 팝업을 띄우고 종료
+    //    }
+    //}
 
     private void LoadScene()
     {

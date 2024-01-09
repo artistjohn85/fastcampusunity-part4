@@ -1,4 +1,5 @@
 using JetBrains.Annotations;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -30,7 +31,7 @@ public class NetworkManager : ManagerBase
     //    StartCoroutine(C_SendPacket(sendPacketBase));
     //}
 
-    public IEnumerator C_SendPacket<T>(SendPacketBase sendPacketBase) where T : ReceivePacketBase
+    public IEnumerator C_SendPacket<T>(SendPacketBase sendPacketBase, Action<ReceivePacketBase> action = null) where T : ReceivePacketBase
     {
         string packet = JsonUtility.ToJson(sendPacketBase);
         Debug.Log("[NetworkManager Send Packet] " + packet);
@@ -51,6 +52,7 @@ public class NetworkManager : ManagerBase
             {
                 Debug.LogError("Error: " + request.error);
                 yield return null;
+                action?.Invoke(new ReceivePacketBase((int)RETURN_CODE.Error));
             }
             else
             {
@@ -60,6 +62,7 @@ public class NetworkManager : ManagerBase
 
                 T receivePacket = JsonUtility.FromJson<T>(jsonData);
                 yield return receivePacket;
+                action?.Invoke(receivePacket);
             }
         }
     }
