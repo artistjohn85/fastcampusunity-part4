@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Net.NetworkInformation;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -13,7 +14,7 @@ public class InitScene_Init : MonoBehaviour
 
     private static bool isInit = false;
     
-    private const int PROGRESS_VALUE = 5;
+    private const int PROGRESS_VALUE = 10;
     private int progressAddValue = 0;
 
     private InitScene_UI InitScene_UI; // cache
@@ -49,7 +50,10 @@ public class InitScene_Init : MonoBehaviour
     private IEnumerator Start()
     {
         yield return null;
-        DevelopmentIdPopup();
+        if (Config.E_ENVIRONMENT_TYPE == ENVIRONMENT_TYPE.Live)
+            StartCoroutine(C_Manager()); 
+        else
+            DevelopmentIdPopup();
     }
 
     private void DevelopmentIdPopup()
@@ -72,7 +76,39 @@ public class InitScene_Init : MonoBehaviour
 
     private IEnumerator C_Manager()
     {
-        IEnumerator enumerator = NetworkManagerInit();
+        NetworkManagerInit();
+
+        // AppConfig
+        IEnumerator eAppConfig = AppConfig();
+        yield return StartCoroutine(eAppConfig);
+        if (!(bool)eAppConfig.Current)
+            yield break;
+
+        yield return new WaitForSeconds(0.1f);
+        SetProgress();
+
+        // Maintenance
+        IEnumerator eMaintenance = Maintenance();
+        yield return StartCoroutine(eMaintenance);
+        if (!(bool)eMaintenance.Current)
+            yield break;
+
+        // UpdateVaild
+        IEnumerator eUpdateVaild = UpdateVaild();
+        yield return StartCoroutine(eUpdateVaild);
+        if (!(bool)eUpdateVaild.Current)
+            yield break;
+
+        yield return new WaitForSeconds(0.1f);
+        SetProgress();
+        
+        yield return StartCoroutine(EtcManager());
+
+    }
+
+    private IEnumerator AppConfig()
+    {
+        IEnumerator enumerator = AppConfigPacket();
         yield return StartCoroutine(enumerator);
         bool isNetworkManagerSuccess = (bool)enumerator.Current;
         if (!isNetworkManagerSuccess)
@@ -87,12 +123,15 @@ public class InitScene_Init : MonoBehaviour
                 // 앱 종료
                 Application.Quit();
             });
+            yield return false;
             yield break;
         }
 
-        yield return new WaitForSeconds(0.1f);
-        SetProgress();
+        yield return true;
+    }
 
+    private IEnumerator Maintenance()
+    {
         if (SystemManager.Instance.dEVELOPMENT_ID_AUTHORITY == DEVELOPMENT_ID_AUTHORITY.None)
         {
             // 점검
@@ -100,7 +139,7 @@ public class InitScene_Init : MonoBehaviour
             IEnumerator eMaintenance = MaintenancePacket();
             yield return StartCoroutine(eMaintenance);
             MaintenanceReceivePacket maintenanceReceivePacket = eMaintenance.Current as MaintenanceReceivePacket;
-            if (maintenanceReceivePacket != null && maintenanceReceivePacket.IsMaintenance) 
+            if (maintenanceReceivePacket != null && maintenanceReceivePacket.IsMaintenance)
             {
                 GameObject objPopupMessage = Instantiate(prefabPopupMessage, parentPopupMessage);
 
@@ -113,12 +152,70 @@ public class InitScene_Init : MonoBehaviour
                     Debug.Log("점검으로 인한 OK버튼, 앱 종료");
                     Application.Quit();
                 });
+                yield return false;
                 yield break;
             }
         }
 
-        yield return StartCoroutine(EtcManager());
+        yield return true;
+    }
 
+    private IEnumerator UpdateVaild()
+    {
+        // 업데이트
+        // 해당 패킷에서 오류가 발생하더라도, 계속 진행하도록 처리하도록 한다.
+        IEnumerator eUpdateVaild = UpdateVaildPacket();
+        yield return StartCoroutine(eUpdateVaild);
+        UpdateVaildReceivePacket receivePacket = eUpdateVaild.Current as UpdateVaildReceivePacket;
+        if (receivePacket != null && receivePacket.IsUpdateVaild)
+        {
+            GameObject objPopupMessage = Instantiate(prefabPopupMessage, parentPopupMessage);
+
+            PopupMessageInfo popupMessageInfo = new PopupMessageInfo(
+                receivePacket.IsRecommand ? POPUP_MESSAGE_TYPE.TWO_BUTTON : POPUP_MESSAGE_TYPE.ONE_BUTTON,
+                receivePacket.Title, 
+                receivePacket.Contents);
+            PopupMessage popupMessage = objPopupMessage.GetComponent<PopupMessage>();
+            popupMessage.OpenMessage(popupMessageInfo, 
+            () =>
+            {
+                // 취소 눌렀을 때 게임 계속 진행
+                StartCoroutine(EtcManager());
+            }, 
+            () =>
+            {
+                // 업데이트 하러 가기 누르면 업데이트 스토어 경로로 이동
+                Debug.Log("업데이트 하러 가기 누르면 업데이트 스토어 경로로 이동");
+
+                if (Config.E_OS_TYPE == OS_TYPE.Android)
+                {
+                    Application.OpenURL("market://details?id=" + "your.package.name");
+                }
+                else
+                {
+                    Application.OpenURL("market://details?id=" + "https://itunes.apple.com/app/your-app-id");
+                }
+            });
+            yield return false;
+            yield break;
+        }
+
+        yield return true;
+    }
+
+    private IEnumerator UpdateVaildPacket()
+    {
+        UpdateVaildSendPacket sendPacket = new UpdateVaildSendPacket(
+               SystemManager.Instance.ApiUrl,
+               PACKET_NAME_TYPE.UpdateVaild,
+               Config.E_ENVIRONMENT_TYPE,
+               Config.E_OS_TYPE,
+               Config.APP_VERSION,
+               Application.systemLanguage);
+
+        IEnumerator enumerator = networkManager.C_SendPacket<UpdateVaildReceivePacket>(sendPacket);
+        yield return StartCoroutine(enumerator);
+        yield return enumerator.Current;
     }
 
     private IEnumerator MaintenancePacket()
@@ -193,10 +290,14 @@ public class InitScene_Init : MonoBehaviour
         SceneLoadManager.Instance.SetInit();
     }
 
-    private IEnumerator NetworkManagerInit()
+    private void NetworkManagerInit()
     {
         networkManager.SetInit();
 
+    }
+
+    private IEnumerator AppConfigPacket()
+    {
         ApplicationConfigSendPacket applicationConfigSendPacket
             = new ApplicationConfigSendPacket(
                 Config.SERVER_APP_CONFIG_URL,

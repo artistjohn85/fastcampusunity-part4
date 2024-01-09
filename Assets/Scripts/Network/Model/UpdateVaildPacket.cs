@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-public class MaintenanceSendPacket : SendPacketBase
+public class UpdateVaildSendPacket : SendPacketBase
 {
     // environment - dev, stage, live
     // os type - Android, iOS
@@ -11,7 +11,7 @@ public class MaintenanceSendPacket : SendPacketBase
     public string AppVersion;
     public int LanguageType;
 
-    public MaintenanceSendPacket(string url,
+    public UpdateVaildSendPacket(string url,
         PACKET_NAME_TYPE packetName,
         ENVIRONMENT_TYPE e_ENVIRONMENT_TYPE,
         OS_TYPE e_OS_TYPE,
@@ -25,17 +25,19 @@ public class MaintenanceSendPacket : SendPacketBase
     }
 }
 
-public class MaintenanceReceivePacket : ReceivePacketBase
+public class UpdateVaildReceivePacket : ReceivePacketBase
 {
     public string ApiUrl;
-    public bool IsMaintenance;
+    public bool IsUpdateVaild; // true 업데이트, false 업데이트 아님
+    public bool IsRecommand; // true 추천 업데이트, false 강제 업데이트
     public string Title;
     public string Contents;
 
-    public MaintenanceReceivePacket(int returnCode, string apiUrl, bool isMaintenance, string title, string contents) : base(returnCode)
+    public UpdateVaildReceivePacket(int returnCode, string apiUrl, bool isUpdateVaild, bool isRecommand, string title, string contents) : base(returnCode)
     {
         this.ApiUrl = apiUrl;
-        this.IsMaintenance = isMaintenance;
+        this.IsUpdateVaild = isUpdateVaild;
+        this.IsRecommand = isRecommand;
         this.Title = title;
         this.Contents = contents;
     }
