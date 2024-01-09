@@ -8,7 +8,10 @@ public class LobbyScene_Init : MonoBehaviour
     private void Awake()
     {
         if (!SystemManager.Instance.IsInit)
+        {
             SceneLoadManager.Instance.GoInitAndReturnScene(SCENE_TYPE.Lobby);
+            return;
+        }
 
         //yield return new WaitForSeconds(1f);
         //SceneManager.LoadScene(SCENE_TYPE.Init.ToString());

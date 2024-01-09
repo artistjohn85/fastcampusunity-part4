@@ -18,6 +18,7 @@ public class InitScene_Init : MonoBehaviour
     private int progressAddValue = 0;
 
     private InitScene_UI InitScene_UI; // cache
+    private LocalStoreManager localStoreManager; // cache
     private ObjectPoolManager objectPoolManager; // cache
     private EffectManager effectManager; // cache
     private SoundManager soundManager; // cache
@@ -31,6 +32,7 @@ public class InitScene_Init : MonoBehaviour
         if (!isInit)
         {
             isInit = true;
+            localStoreManager = new GameObject("LocalStoreManager").AddComponent<LocalStoreManager>();
             objectPoolManager = new GameObject("ObjectPoolManager").AddComponent<ObjectPoolManager>();
             effectManager = new GameObject("EffectManager").AddComponent<EffectManager>();
             soundManager = new GameObject("SoundManager").AddComponent<SoundManager>();
@@ -39,6 +41,7 @@ public class InitScene_Init : MonoBehaviour
         }
         else
         {
+            localStoreManager = FindAnyObjectByType<LocalStoreManager>();
             objectPoolManager = FindAnyObjectByType<ObjectPoolManager>();
             effectManager = FindAnyObjectByType<EffectManager>();
             soundManager = FindAnyObjectByType<SoundManager>();
@@ -239,6 +242,8 @@ public class InitScene_Init : MonoBehaviour
         List<Action> actions = new List<Action>
         {
             SystemManagerInit,
+            LocalStoreManagerInit,
+            DataManagerInit,
             ObjectPoolManagerInit,
             EffectManagerInit,
             SoundManager,
@@ -263,6 +268,24 @@ public class InitScene_Init : MonoBehaviour
     private void SystemManagerInit()
     {
         SystemManager.Instance.SetInit();
+    }
+
+    private void LocalStoreManagerInit()
+    {
+        localStoreManager.SetInit(Application.persistentDataPath);
+    }
+
+    private void DataManagerInit()
+    {
+        UserConfigInfo userConfigInfo = new UserConfigInfo("¼®Áø");
+
+        // save test
+        localStoreManager.SaveData<UserConfigInfo>(userConfigInfo);
+
+        // load test
+        UserConfigInfo loadUserConfigInfo = localStoreManager.LoadData<UserConfigInfo>();
+
+        DataManager.Instance.SetInit(new UserController(loadUserConfigInfo));
     }
 
     private void ObjectPoolManagerInit()
