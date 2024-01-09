@@ -8,6 +8,7 @@ using UnityEngine.SceneManagement;
 public class InitScene_Init : MonoBehaviour
 {
     [SerializeField] private GameObject prefabPopupMessage;
+    [SerializeField] private GameObject prefabPopupInputMessage;
     [SerializeField] private Transform parentPopupMessage;
 
     private static bool isInit = false;
@@ -48,9 +49,25 @@ public class InitScene_Init : MonoBehaviour
     private IEnumerator Start()
     {
         yield return null;
-        
+        DevelopmentIdPopup();
+    }
 
-        StartCoroutine(C_Manager());
+    private void DevelopmentIdPopup()
+    {
+        GameObject objPopupInputMessage = Instantiate(prefabPopupInputMessage, parentPopupMessage);
+
+        PopupMessageInfo popupMessageInfo = new PopupMessageInfo(POPUP_MESSAGE_TYPE.TWO_BUTTON, "DEVELOPMENT ID", "테스를 위한 ID를 입력해주세요.");
+        PopupInputMessage popupInputMessage = objPopupInputMessage.GetComponent<PopupInputMessage>();
+        popupInputMessage.OpenMessage(popupMessageInfo, SystemManager.Instance.DevelopmentId,
+        () =>
+        {
+            StartCoroutine(C_Manager());
+        },
+        (inputFieldValue) =>
+        {
+            SystemManager.Instance.DevelopmentId = inputFieldValue;
+            StartCoroutine(C_Manager());
+        });
     }
 
     private IEnumerator C_Manager()
@@ -75,6 +92,11 @@ public class InitScene_Init : MonoBehaviour
 
         yield return new WaitForSeconds(0.1f);
         SetProgress();
+
+        if (SystemManager.Instance.dEVELOPMENT_ID_AUTHORITY == DEVELOPMENT_ID_AUTHORITY.None)
+        {
+            // 점검
+        }
 
         yield return StartCoroutine(EtcManager());
 
@@ -147,7 +169,8 @@ public class InitScene_Init : MonoBehaviour
                 PACKET_NAME_TYPE.ApplicationConfig,
                 Config.E_ENVIRONMENT_TYPE,
                 Config.E_OS_TYPE,
-                Config.APP_VERSION);
+                Config.APP_VERSION,
+                SystemManager.Instance.DevelopmentId);
 
         // Github에 업로드, 콜백 방식 사용
         //networkManager.C_SendPacket<ApplicationConfigReceivePacket>(applicationConfigSendPacket, AppConfig);
@@ -158,6 +181,7 @@ public class InitScene_Init : MonoBehaviour
         if (receivePacket != null && receivePacket.ReturnCode == (int)RETURN_CODE.Success)
         {
             SystemManager.Instance.ApiUrl = receivePacket.ApiUrl;
+            SystemManager.Instance.dEVELOPMENT_ID_AUTHORITY = (DEVELOPMENT_ID_AUTHORITY)receivePacket.DevelopmentIdAuthority;
             yield return true;
         }
         else
