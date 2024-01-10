@@ -5,6 +5,8 @@ public class Config
 {
     public static readonly string APP_VERSION = Application.version;
 
+    public const string AES_KEY = "23856df2220fea61a0d50e1e8304c555";
+
 #if DEV
     public const ENVIRONMENT_TYPE E_ENVIRONMENT_TYPE = ENVIRONMENT_TYPE.Dev;
 #elif STAGE

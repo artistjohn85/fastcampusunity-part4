@@ -36,6 +36,23 @@ public class NetworkManager : ManagerBase
         string packet = JsonUtility.ToJson(sendPacketBase);
         Debug.Log("[NetworkManager Send Packet] " + packet);
 
+        try
+        {
+            packet = AesEncrypt.EncryptString(packet, Config.AES_KEY, out string iv);
+            Debug.Log("Encrypt: " + packet);
+            Debug.Log("IV: " + iv);
+            packet = iv + "|" + packet;
+        } 
+        catch (Exception e)
+        {
+            packet = string.Empty;
+        }
+        if (!string.IsNullOrEmpty(packet))
+        {
+            yield return null;
+        }
+
+
         using (UnityWebRequest request = UnityWebRequest.PostWwwForm(sendPacketBase.Url, packet))
         {
             byte[] bytes = new System.Text.UTF8Encoding().GetBytes(packet);

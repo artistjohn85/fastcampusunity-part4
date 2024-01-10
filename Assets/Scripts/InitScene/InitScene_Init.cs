@@ -27,8 +27,10 @@ public class InitScene_Init : MonoBehaviour
 
     private void Awake()
     {
-        InitScene_UI = FindAnyObjectByType<InitScene_UI>();
+        //Debug.Log(AesEncrypt.GenerateRandomAESKey());
 
+        InitScene_UI = FindAnyObjectByType<InitScene_UI>();
+        
         if (!isInit)
         {
             isInit = true;
