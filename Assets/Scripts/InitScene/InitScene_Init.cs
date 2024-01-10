@@ -11,7 +11,7 @@ public class InitScene_Init : MonoBehaviour
 
     private static bool isInit = false;
 
-    private const int PROGRESS_VALUE = 10;
+    private const int PROGRESS_VALUE = 15;
     private int progressAddValue = 0;
 
     private InitScene_UI InitScene_UI; // cache

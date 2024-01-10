@@ -17,9 +17,13 @@ public class CertHandler : CertificateHandler
 
 public class NetworkManager : ManagerBase
 {
+    private InitScene_UI initScene_UI; // cache
+
+
     private void Awake()
     {
         Dontdestory<NetworkManager>();
+        this.initScene_UI = FindAnyObjectByType<InitScene_UI>();
     }
 
     public void SetInit()
@@ -63,12 +67,15 @@ public class NetworkManager : ManagerBase
             // HTTPS 통신을 위한 보안 설정
             request.certificateHandler = new CertHandler();
 
+            this.initScene_UI.LoadingGear.EnableGear();
+
             yield return request.SendWebRequest();
 
             if (request.result == UnityWebRequest.Result.ConnectionError || request.result == UnityWebRequest.Result.ProtocolError)
             {
                 Debug.LogError("Error: " + request.error);
                 yield return null;
+                this.initScene_UI.LoadingGear.DisableGear();
                 action?.Invoke(new ReceivePacketBase((int)RETURN_CODE.Error));
             }
             else
@@ -79,6 +86,7 @@ public class NetworkManager : ManagerBase
 
                 T receivePacket = JsonUtility.FromJson<T>(jsonData);
                 yield return receivePacket;
+                this.initScene_UI.LoadingGear.DisableGear();
                 action?.Invoke(receivePacket);
             }
         }
