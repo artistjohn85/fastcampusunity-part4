@@ -22,19 +22,25 @@ public class DataManager : ManagerBase
     public UserController UserController
     {   
         get { return userController; }
-        set { userController = value; }
     }
 
     // serverdata
     // tabledata
+
+    private TableController tableController;
+    public TableController TableController
+    {
+        get { return tableController; }
+    }
 
     private void Awake()
     {
         Dontdestory<DataManager>();
     }
 
-    public void SetInit(UserController userController)
+    public void SetInit(UserController userController, TableController tableController)
     {
         this.userController = userController;
+        this.tableController = tableController;
     }
 }

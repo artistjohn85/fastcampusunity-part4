@@ -19,6 +19,7 @@ public class InitScene_Init : MonoBehaviour
 
     private InitScene_UI InitScene_UI; // cache
     private LocalStoreManager localStoreManager; // cache
+    private LocalizationManager localizationManager; // cache
     private ObjectPoolManager objectPoolManager; // cache
     private EffectManager effectManager; // cache
     private SoundManager soundManager; // cache
@@ -35,6 +36,7 @@ public class InitScene_Init : MonoBehaviour
         {
             isInit = true;
             localStoreManager = new GameObject("LocalStoreManager").AddComponent<LocalStoreManager>();
+            localizationManager = new GameObject("LocalizationManager").AddComponent<LocalizationManager>();
             objectPoolManager = new GameObject("ObjectPoolManager").AddComponent<ObjectPoolManager>();
             effectManager = new GameObject("EffectManager").AddComponent<EffectManager>();
             soundManager = new GameObject("SoundManager").AddComponent<SoundManager>();
@@ -44,6 +46,7 @@ public class InitScene_Init : MonoBehaviour
         else
         {
             localStoreManager = FindAnyObjectByType<LocalStoreManager>();
+            localizationManager = FindAnyObjectByType<LocalizationManager>();
             objectPoolManager = FindAnyObjectByType<ObjectPoolManager>();
             effectManager = FindAnyObjectByType<EffectManager>();
             soundManager = FindAnyObjectByType<SoundManager>();
@@ -246,6 +249,7 @@ public class InitScene_Init : MonoBehaviour
             SystemManagerInit,
             LocalStoreManagerInit,
             DataManagerInit,
+            LocalizationInit,
             ObjectPoolManagerInit,
             EffectManagerInit,
             SoundManager,
@@ -287,7 +291,24 @@ public class InitScene_Init : MonoBehaviour
         // load test
         UserConfigInfo loadUserConfigInfo = localStoreManager.LoadData<UserConfigInfo>();
 
-        DataManager.Instance.SetInit(new UserController(loadUserConfigInfo));
+        // table
+        List<TableLocalization> tableLocalizations = new List<TableLocalization>()
+        {
+            new TableLocalization(1, "인게임", "Ingame"),
+            new TableLocalization(2, "로비", "Lobby"),
+        };
+
+        DataManager.Instance.SetInit(
+            new UserController(loadUserConfigInfo),
+            new TableController(tableLocalizations)
+        );
+    }
+
+    private void LocalizationInit()
+    {
+        List<TableLocalization> tableLocalizations 
+            = DataManager.Instance.TableController.TableLocalizations;
+        localizationManager.SetInit(tableLocalizations);
     }
 
     private void ObjectPoolManagerInit()
