@@ -6,15 +6,17 @@ using UnityEngine;
 public class LocalizationManager : ManagerBase
 {
     private List<TableLocalization> localizations;
+    private SystemLanguage systemLanguage;
 
     private void Awake()
     {
         Dontdestory<LocalizationManager>();
     }
 
-    public void SetInit(List<TableLocalization> localizations)
+    public void SetInit(List<TableLocalization> localizations, SystemLanguage systemLanguage)
     {
         this.localizations = localizations;
+        this.systemLanguage = systemLanguage;
     }
 
     public string GetString(int key)
@@ -23,7 +25,7 @@ public class LocalizationManager : ManagerBase
         if (tableLocalization == null)
             return string.Empty;
 
-        switch (Application.systemLanguage) 
+        switch (systemLanguage)
         {
             case SystemLanguage.English:
                 return tableLocalization.en;

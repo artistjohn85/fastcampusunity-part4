@@ -1,10 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Net.NetworkInformation;
-using Unity.VisualScripting;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 public class InitScene_Init : MonoBehaviour
 {
@@ -13,12 +10,13 @@ public class InitScene_Init : MonoBehaviour
     [SerializeField] private Transform parentPopupMessage;
 
     private static bool isInit = false;
-    
+
     private const int PROGRESS_VALUE = 10;
     private int progressAddValue = 0;
 
     private InitScene_UI InitScene_UI; // cache
     private LocalStoreManager localStoreManager; // cache
+    private LanguageManager languageManager; // cache
     private LocalizationManager localizationManager; // cache
     private ObjectPoolManager objectPoolManager; // cache
     private EffectManager effectManager; // cache
@@ -31,11 +29,12 @@ public class InitScene_Init : MonoBehaviour
         //Debug.Log(AesEncrypt.GenerateRandomAESKey());
 
         InitScene_UI = FindAnyObjectByType<InitScene_UI>();
-        
+
         if (!isInit)
         {
             isInit = true;
             localStoreManager = new GameObject("LocalStoreManager").AddComponent<LocalStoreManager>();
+            languageManager = new GameObject("LanguageManager").AddComponent<LanguageManager>();
             localizationManager = new GameObject("LocalizationManager").AddComponent<LocalizationManager>();
             objectPoolManager = new GameObject("ObjectPoolManager").AddComponent<ObjectPoolManager>();
             effectManager = new GameObject("EffectManager").AddComponent<EffectManager>();
@@ -46,6 +45,7 @@ public class InitScene_Init : MonoBehaviour
         else
         {
             localStoreManager = FindAnyObjectByType<LocalStoreManager>();
+            languageManager = FindAnyObjectByType<LanguageManager>();
             localizationManager = FindAnyObjectByType<LocalizationManager>();
             objectPoolManager = FindAnyObjectByType<ObjectPoolManager>();
             effectManager = FindAnyObjectByType<EffectManager>();
@@ -59,7 +59,7 @@ public class InitScene_Init : MonoBehaviour
     {
         yield return null;
         if (Config.E_ENVIRONMENT_TYPE == ENVIRONMENT_TYPE.Live)
-            StartCoroutine(C_Manager()); 
+            StartCoroutine(C_Manager());
         else
             DevelopmentIdPopup();
     }
@@ -77,6 +77,8 @@ public class InitScene_Init : MonoBehaviour
         },
         (inputFieldValue) =>
         {
+            //FirebaseAnalytics.LogEvent("init-scene-developmentid", "DevelopmentId", inputFieldValue);
+
             SystemManager.Instance.DevelopmentId = inputFieldValue;
             StartCoroutine(C_Manager());
         });
@@ -109,7 +111,7 @@ public class InitScene_Init : MonoBehaviour
 
         yield return new WaitForSeconds(0.1f);
         SetProgress();
-        
+
         yield return StartCoroutine(EtcManager());
 
     }
@@ -181,15 +183,15 @@ public class InitScene_Init : MonoBehaviour
 
             PopupMessageInfo popupMessageInfo = new PopupMessageInfo(
                 receivePacket.IsRecommand ? POPUP_MESSAGE_TYPE.TWO_BUTTON : POPUP_MESSAGE_TYPE.ONE_BUTTON,
-                receivePacket.Title, 
+                receivePacket.Title,
                 receivePacket.Contents);
             PopupMessage popupMessage = objPopupMessage.GetComponent<PopupMessage>();
-            popupMessage.OpenMessage(popupMessageInfo, 
+            popupMessage.OpenMessage(popupMessageInfo,
             () =>
             {
                 // 취소 눌렀을 때 게임 계속 진행
                 StartCoroutine(EtcManager());
-            }, 
+            },
             () =>
             {
                 // 업데이트 하러 가기 누르면 업데이트 스토어 경로로 이동
@@ -249,6 +251,7 @@ public class InitScene_Init : MonoBehaviour
             SystemManagerInit,
             LocalStoreManagerInit,
             DataManagerInit,
+            LanguageManagerInit,
             LocalizationInit,
             ObjectPoolManagerInit,
             EffectManagerInit,
@@ -304,11 +307,17 @@ public class InitScene_Init : MonoBehaviour
         );
     }
 
+    private void LanguageManagerInit()
+    {
+        languageManager.SetInit();
+        languageManager.Language = SystemLanguage.English;
+    }
+
     private void LocalizationInit()
     {
-        List<TableLocalization> tableLocalizations 
+        List<TableLocalization> tableLocalizations
             = DataManager.Instance.TableController.TableLocalizations;
-        localizationManager.SetInit(tableLocalizations);
+        localizationManager.SetInit(tableLocalizations, languageManager.Language);
     }
 
     private void ObjectPoolManagerInit()

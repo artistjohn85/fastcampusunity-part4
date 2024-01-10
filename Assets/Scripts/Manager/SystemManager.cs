@@ -31,6 +31,18 @@ public class SystemManager : ManagerBase
         }
     }
 
+    public string CustomLanauge
+    {
+        get
+        {
+            return PlayerPrefs.GetString("CustomLanauge");
+        }
+        set
+        {
+            PlayerPrefs.SetString("CustomLanauge", value);
+        }
+    }
+
     public DEVELOPMENT_ID_AUTHORITY dEVELOPMENT_ID_AUTHORITY { get; set; } = DEVELOPMENT_ID_AUTHORITY.None;
 
     private void Awake()
