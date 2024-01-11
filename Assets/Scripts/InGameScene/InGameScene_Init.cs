@@ -22,9 +22,14 @@ public class InGameScene_Init : MonoBehaviour
         Debug.Log(DataManager.Instance.UserController.UserConfigInfo.UserName);
     }
 
-    private void Start()
+    private IEnumerator Start()
     {
         string value = localizationManager.GetString(1);
         inGameScene_UI.SetTitle(value);
+
+        IEnumerator enumerator = ResourcesManager.Instance.ResourcesLoad<GameObject>("PopupMessage");
+        yield return StartCoroutine(enumerator);
+        GameObject popupMessage = enumerator.Current as GameObject;
+        Instantiate(popupMessage, inGameScene_UI.transform, false);
     }
 }

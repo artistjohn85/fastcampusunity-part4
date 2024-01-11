@@ -30,6 +30,7 @@ public enum OS_TYPE
 {
     Android = 1,
     iOS = 2,
+    Windows = 3,
 }
 
 public enum RETURN_CODE

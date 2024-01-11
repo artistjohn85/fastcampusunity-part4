@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor.Build.Content;
 using UnityEngine;
 
 public class InitScene_Init : MonoBehaviour
@@ -245,10 +246,21 @@ public class InitScene_Init : MonoBehaviour
 
     private IEnumerator EtcManager()
     {
+        SystemManagerInit();
+        yield return new WaitForSeconds(0.1f);
+        SetProgress();
+
+        ResourcesManagerInit();
+        yield return new WaitForSeconds(0.1f);
+        SetProgress();
+
+        IEnumerator eAssetBundle = AssetBundleInit();
+        yield return StartCoroutine(eAssetBundle);
+        if (!(bool)eAssetBundle.Current)
+            yield break;
 
         List<Action> actions = new List<Action>
         {
-            SystemManagerInit,
             LocalStoreManagerInit,
             DataManagerInit,
             LanguageManagerInit,
@@ -278,6 +290,34 @@ public class InitScene_Init : MonoBehaviour
     {
         SystemManager.Instance.SetInit();
     }
+    
+    private void ResourcesManagerInit()
+    {
+        ResourcesManager.Instance.SetInit();
+    }
+
+    private IEnumerator AssetBundleInit()
+    {
+        IEnumerator eAssetBundleLoad = ResourcesManager.Instance.AssetBundleLoad(Config.ASSET_BUNDLE_URL, 101001);
+        yield return StartCoroutine(eAssetBundleLoad);
+        if (!(bool)eAssetBundleLoad.Current)
+        {
+            GameObject objPopupMessage = Instantiate(prefabPopupMessage, parentPopupMessage);
+            PopupMessageInfo popupMessageInfo = new PopupMessageInfo(POPUP_MESSAGE_TYPE.ONE_BUTTON,
+                "안내", "에셋번들 로드 오류");
+            PopupMessage popupMessage = objPopupMessage.GetComponent<PopupMessage>();
+            popupMessage.OpenMessage(popupMessageInfo, null, () =>
+            {
+                // 앱 종료
+                Debug.Log("에셋번들 로드 오류, 앱 종료");
+                Application.Quit();
+            });
+            yield return false;
+            yield break;
+        }
+
+        yield return true;
+    }
 
     private void LocalStoreManagerInit()
     {
@@ -286,8 +326,9 @@ public class InitScene_Init : MonoBehaviour
 
     private void DataManagerInit()
     {
-        UserConfigInfo userConfigInfo = new UserConfigInfo("석진");
-
+        UserConfigInfo userConfigInfo = new UserConfigInfo("석진", "1234!");
+        userConfigInfo.EncrpytPassword(out string iv);
+        
         // save test
         localStoreManager.SaveData<UserConfigInfo>(userConfigInfo);
 

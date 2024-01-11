@@ -7,6 +7,8 @@ public class Config
 
     public const string AES_KEY = "23856df2220fea61a0d50e1e8304c555";
 
+    public const string ASSET_BUNDLE_URL = "https://localhost:7212/AssetBundles";
+
 #if DEV
     public const ENVIRONMENT_TYPE E_ENVIRONMENT_TYPE = ENVIRONMENT_TYPE.Dev;
 #elif STAGE
@@ -34,6 +36,6 @@ public class Config
 #elif UNITY_IOS
     public const OS_TYPE E_OS_TYPE = OS_TYPE.iOS;
 #else
-    public const OS_TYPE E_OS_TYPE = OS_TYPE.Android;
+    public const OS_TYPE E_OS_TYPE = OS_TYPE.Windows;
 #endif
 }
